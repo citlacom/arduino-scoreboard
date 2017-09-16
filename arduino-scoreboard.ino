@@ -47,6 +47,9 @@ int button2_last_status = 0;
 int player2_counter = 0;
 int player2_leds[LEDS_SIZE] = {19, 18, 17, 16, 15};
 
+// Winer player record, when game is finished should be 1 or 2.
+int winner_player = 0;
+
 // Unsigned longs because the time is milliseconds.
 unsigned long button1_debounce_time = 0;
 unsigned long button2_debounce_time = 0;
@@ -90,20 +93,23 @@ void loop() {
     button1_status = reading1;
     // If the button state has changed to pressed.
     if (button1_status != button1_last_status && button1_status == HIGH) {
-      player1_counter++;
+      // Ensure do not exceed player leds size.
+      if (player1_counter < LEDS_SIZE && winner_player == 0) {
+        player1_counter++;
+      }
 
+      // Mark current player score on leds.
       for (int i = 0; i < player1_counter; i++) {
         Serial.println(player1_leds[i]);
         digitalWrite(player1_leds[i], HIGH);
       }
 
-      if (!evaluate_winner()) {
+      evaluate_winner();
+
+      if (winner_player == 0) {
         // Play goal song.
         play_rtttl(songs[0]);
       }
-
-      // Avoid multiples counts over few seconds period.
-      delay(1000);
     }
   }
 
@@ -112,14 +118,20 @@ void loop() {
     button2_status = reading2;
     // If the button state has changed to pressed.
     if (button2_status != button2_last_status && button2_status == HIGH) {
-      player2_counter++;
+      // Ensure do not exceed player leds size.
+      if (player2_counter < LEDS_SIZE && winner_player == 0) {
+        player2_counter++;
+      }
 
+      // Mark current player score on leds.
       for (int i = 0; i < player2_counter; i++) {
         Serial.println(player2_leds[i]);
         digitalWrite(player2_leds[i], HIGH);
       }
 
-      if (!evaluate_winner()) {
+      evaluate_winner();
+
+      if (winner_player == 0) {
         // Play goal song.
         play_rtttl(songs[1]);
       }
@@ -132,10 +144,9 @@ void loop() {
 }
 
 // Evaluate if there is a winner and if that case turn off loser leds
-// and plays the end game over song. Returns TRUE if there is a winner.
-bool evaluate_winner() {
+// and plays the end game over song.
+void evaluate_winner() {
   int *loser_pins;
-  bool winner = false;
 
   Serial.print("The current result is: ");
   Serial.print(player1_counter);
@@ -144,16 +155,16 @@ bool evaluate_winner() {
 
   if (player1_counter == LEDS_SIZE) {
     loser_pins = player2_leds;
-    winner = true;
+    winner_player = 1;
   }
 
   if (player2_counter == LEDS_SIZE) {
     loser_pins = player1_leds;
-    winner = true;
+    winner_player = 2;
   }
 
   // Play end game sound if there is a winner.
-  if (winner) {
+  if (winner_player != 0) {
     Serial.println("We have a winner player.");
     // Turn off the loser pins.
     if (loser_pins) {
@@ -166,8 +177,6 @@ bool evaluate_winner() {
 
     play_rtttl(songs[7]);
   }
-
-  return winner;
 }
 
 #define isdigit(n) (n >= '0' && n <= '9')
