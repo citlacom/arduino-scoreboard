@@ -96,12 +96,12 @@ void loop() {
       // Ensure do not exceed player leds size.
       if (player1_counter < LEDS_SIZE && winner_player == 0) {
         player1_counter++;
-      }
 
-      // Mark current player score on leds.
-      for (int i = 0; i < player1_counter; i++) {
-        Serial.println(player1_leds[i]);
-        digitalWrite(player1_leds[i], HIGH);
+        // Mark current player score on leds.
+        for (int i = 0; i < player1_counter; i++) {
+          Serial.println(player1_leds[i]);
+          digitalWrite(player1_leds[i], HIGH);
+        }
       }
 
       evaluate_winner();
@@ -121,12 +121,12 @@ void loop() {
       // Ensure do not exceed player leds size.
       if (player2_counter < LEDS_SIZE && winner_player == 0) {
         player2_counter++;
-      }
 
-      // Mark current player score on leds.
-      for (int i = 0; i < player2_counter; i++) {
-        Serial.println(player2_leds[i]);
-        digitalWrite(player2_leds[i], HIGH);
+        // Mark current player score on leds.
+        for (int i = 0; i < player2_counter; i++) {
+          Serial.println(player2_leds[i]);
+          digitalWrite(player2_leds[i], HIGH);
+        }
       }
 
       evaluate_winner();
