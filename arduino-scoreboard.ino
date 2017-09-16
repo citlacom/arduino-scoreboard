@@ -97,8 +97,10 @@ void loop() {
         digitalWrite(player1_leds[i], HIGH);
       }
 
-      // Play goal song.
-      play_rtttl(songs[0]);
+      if (!evaluate_winner()) {
+        // Play goal song.
+        play_rtttl(songs[0]);
+      }
 
       // Avoid multiples counts over few seconds period.
       delay(1000);
@@ -117,17 +119,55 @@ void loop() {
         digitalWrite(player2_leds[i], HIGH);
       }
 
-      // Play goal song.
-      play_rtttl(songs[1]);
-
-      // Avoid multiples counts over few seconds period.
-      delay(1000);
+      if (!evaluate_winner()) {
+        // Play goal song.
+        play_rtttl(songs[1]);
+      }
     }
   }
 
   // Save the reading for next time through the loop.
   button1_last_status = reading1;
   button2_last_status = reading2;
+}
+
+// Evaluate if there is a winner and if that case turn off loser leds
+// and plays the end game over song. Returns TRUE if there is a winner.
+bool evaluate_winner() {
+  int *loser_pins;
+  bool winner = false;
+
+  Serial.print("The current result is: ");
+  Serial.print(player1_counter);
+  Serial.print(" - ");
+  Serial.println(player2_counter);
+
+  if (player1_counter == LEDS_SIZE) {
+    loser_pins = player2_leds;
+    winner = true;
+  }
+
+  if (player2_counter == LEDS_SIZE) {
+    loser_pins = player1_leds;
+    winner = true;
+  }
+
+  // Play end game sound if there is a winner.
+  if (winner) {
+    Serial.println("We have a winner player.");
+    // Turn off the loser pins.
+    if (loser_pins) {
+      for (int i = 0; i < LEDS_SIZE-1; i++) {
+        Serial.print("Turn off pin: ");
+        Serial.println(i);
+        digitalWrite(loser_pins[i], LOW);
+      }
+    }
+
+    play_rtttl(songs[7]);
+  }
+
+  return winner;
 }
 
 #define isdigit(n) (n >= '0' && n <= '9')
