@@ -319,11 +319,20 @@ void play_rtttl(char *p) {
 
 // Display the score at OLED screen.
 void screen_display_result() {
+  char *label;
+
+  if (winner_player == 0) {
+    label = "MARCADOR";
+  }
+  else {
+    label = "FINALIZADO";
+  }
+
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(display.width()/3, 0);
-  display.println("MARCADOR:");
+  display.println(label);
   display.drawRect(5, 10, display.width()-5, display.height()-10, WHITE);
 
   // Display score.
