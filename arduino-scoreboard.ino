@@ -1,19 +1,27 @@
-// Uses the https://github.com/bhagman/Tone library to play songs
+// Use the https://github.com/bhagman/Tone library to play songs
 // using a passive buzzer.
 #include <Tone.h>
+// Use the https://github.com/adafruit/Adafruit_SSD1306
+// and https://github.com/adafruit/Adafruit-GFX-Library
+// libraries to display results to OLED screen.
+#include <Adafruit_SSD1306.h>
 
-Tone tone1;
-
+// BUZZER
+#define BUZZER_PIN 13
 // Red button
-#define BUTTON_PLAYER1 3
+#define BUTTON_PLAYER1 1
 // Yellow button
 #define BUTTON_PLAYER2 2
 // Player leds size.
 #define LEDS_SIZE 5
 // Variables for song play.
 #define OCTAVE_OFFSET 0
-// Total of available songs.
-#define TOTAL_SONGS 8
+// Screen OLED variables.
+#define OLED_RESET A0
+#define NUMFLAKES 10
+#define XPOS 0
+#define YPOS 1
+#define DELTAY 2
 
 // Notes array required by Tone library.
 int notes[] = { 0,
@@ -25,27 +33,22 @@ int notes[] = { 0,
 
 // Available songs to play when goal or win events occurs.
 char *songs[] = {
-  "smb:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6",
-  "The Simpsons:d=4,o=5,b=160:c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g,8p,8p,8f#,8f#,8f#,8g,a#.,8c6,8c6,8c6,c6",
-  "Entertainer:d=4,o=5,b=140:8d,8d#,8e,c6,8e,c6,8e,2c.6,8c6,8d6,8d#6,8e6,8c6,8d6,e6,8b,d6,2c6,p,8d,8d#,8e,c6,8e,c6,8e,2c.6,8p,8a,8g,8f#,8a,8c6,e6,8d6,8c6,8a,2d6",
-  "Muppets:d=4,o=5,b=250:c6,c6,a,b,8a,b,g,p,c6,c6,a,8b,8a,8p,g.,p,e,e,g,f,8e,f,8c6,8c,8d,e,8e,8e,8p,8e,g,2p,c6,c6,a,b,8a,b,g,p,c6,c6,a,8b,a,g.,p,e,e,g,f,8e,f,8c6,8c,8d,e,8e,d,8d,c",
-  "Xfiles:d=4,o=5,b=125:e,b,a,b,d6,2b.,1p,e,b,a,b,e6,2b.,1p,g6,f#6,e6,d6,e6,2b.,1p,g6,f#6,e6,d6,f#6,2b.,1p,e,b,a,b,d6,2b.,1p,e,b,a,b,e6,2b.,1p,e6,2b.",
-  "Looney:d=4,o=5,b=140:32p,c6,8f6,8e6,8d6,8c6,a.,8c6,8f6,8e6,8d6,8d#6,e.6,8e6,8e6,8c6,8d6,8c6,8e6,8c6,8d6,8a,8c6,8g,8a#,8a,8f",
-  "StarWars:d=4,o=5,b=45:32p,32f#,32f#,32f#,8b.,8f#.6,32e6,32d#6,32c#6,8b.6,16f#.6,32e6,32d#6,32c#6,8b.6,16f#.6,32e6,32d#6,32e6,8c#.6,32f#,32f#,32f#,8b.,8f#.6,32e6,32d#6,32c#6,8b.6,16f#.6,32e6,32d#6,32c#6,8b.6,16f#.6,32e6,32d#6,32e6,8c#6",
-  "Smurfs:d=32,o=5,b=200:4c#6,16p,4f#6,p,16c#6,p,8d#6,p,8b,p,4g#,16p,4c#6,p,16a#,p,8f#,p,8a#,p,4g#,4p,g#,p,a#,p,b,p,c6,p,4c#6,16p,4f#6,p,16c#6,p,8d#6,p,8b,p,4g#,16p,4c#6,p,16a#,p,8b,p,8f,p,4f#",
+  (char*)"smb:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6",
+  (char*)"The Simpsons:d=4,o=5,b=160:c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g,8p,8p,8f#,8f#,8f#,8g,a#.,8c6,8c6,8c6,c6",
+  (char*)"Smurfs:d=32,o=5,b=200:4c#6,16p,4f#6,p,16c#6,p,8d#6,p,8b,p,4g#,16p,4c#6,p,16a#,p,8f#,p,8a#,p,4g#,4p,g#,p,a#,p,b,p,c6,p,4c#6,16p,4f#6,p,16c#6,p,8d#6,p,8b,p,4g#,16p,4c#6,p,16a#,p,8b,p,8f,p,4f#",
 };
 
 // Variables to control state of button1 state and player1 score.
 int button1_status = 0;
 int button1_last_status = 0;
 int player1_counter = 0;
-int player1_leds[LEDS_SIZE] = {4, 5, 6, 7, 8};
+int player1_leds[LEDS_SIZE] = {8, 9, 10, 11, 12};
 
 // Variables to control state of button2 state and player2 score.
 int button2_status = 0;
 int button2_last_status = 0;
 int player2_counter = 0;
-int player2_leds[LEDS_SIZE] = {19, 18, 17, 16, 15};
+int player2_leds[LEDS_SIZE] = {3, 4, 5, 6, 7};
 
 // Winer player record, when game is finished should be 1 or 2.
 int winner_player = 0;
@@ -59,11 +62,16 @@ unsigned int debounce_delay = 50;
 int reading1;
 int reading2;
 
+// Initialize Tone object.
+Tone tone1;
+// Initialize Adafruit_SSD1306 object.
+Adafruit_SSD1306 display(OLED_RESET);
+
 void setup() {
   pinMode(BUTTON_PLAYER1, INPUT);
   pinMode(BUTTON_PLAYER2, INPUT);
-  // Initialize tone output at pin 9.
-  tone1.begin(9);
+  // Initialize buzzer to Tone.
+  tone1.begin(BUZZER_PIN);
 
   // Initialize player1 leds pins as outputs.
   for (int i = 0; i < LEDS_SIZE; i++) {
@@ -71,13 +79,16 @@ void setup() {
     pinMode(player2_leds[i], OUTPUT);
   }
 
-  Serial.begin(9600);
+  // Initialize screen with the I2C addr 0x3C (for the 128x64)
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+
+  // Initialize screen.
+  screen_display_result();
 }
 
 void loop() {
   int reading1 = digitalRead(BUTTON_PLAYER1);
   int reading2 = digitalRead(BUTTON_PLAYER2);
-  //Serial.println(reading);
 
   // Reset the debouncing timer at any state change.
   if (button1_status != button1_last_status) {
@@ -99,7 +110,6 @@ void loop() {
 
         // Mark current player score on leds.
         for (int i = 0; i < player1_counter; i++) {
-          Serial.println(player1_leds[i]);
           digitalWrite(player1_leds[i], HIGH);
         }
       }
@@ -124,7 +134,6 @@ void loop() {
 
         // Mark current player score on leds.
         for (int i = 0; i < player2_counter; i++) {
-          Serial.println(player2_leds[i]);
           digitalWrite(player2_leds[i], HIGH);
         }
       }
@@ -147,11 +156,8 @@ void loop() {
 // and plays the end game over song.
 void evaluate_winner() {
   int *loser_pins;
-
-  Serial.print("The current result is: ");
-  Serial.print(player1_counter);
-  Serial.print(" - ");
-  Serial.println(player2_counter);
+  // Display current result in screen.
+  screen_display_result();
 
   if (player1_counter == LEDS_SIZE) {
     loser_pins = player2_leds;
@@ -165,17 +171,14 @@ void evaluate_winner() {
 
   // Play end game sound if there is a winner.
   if (winner_player != 0) {
-    Serial.println("We have a winner player.");
     // Turn off the loser pins.
     if (loser_pins) {
       for (int i = 0; i < LEDS_SIZE-1; i++) {
-        Serial.print("Turn off pin: ");
-        Serial.println(i);
         digitalWrite(loser_pins[i], LOW);
       }
     }
 
-    play_rtttl(songs[7]);
+    play_rtttl(songs[2]);
   }
 }
 
@@ -201,15 +204,12 @@ void play_rtttl(char *p) {
   if(*p == 'd') {
     p++; p++;              // skip "d="
     num = 0;
-    while(isdigit(*p))
-    {
+    while(isdigit(*p)) {
       num = (num * 10) + (*p++ - '0');
     }
     if(num > 0) default_dur = num;
     p++;                   // skip comma
   }
-
-  Serial.print("ddur: "); Serial.println(default_dur, 10);
 
   // get default octave
   if(*p == 'o') {
@@ -219,26 +219,20 @@ void play_rtttl(char *p) {
     p++;                   // skip comma
   }
 
-  Serial.print("doct: "); Serial.println(default_oct, 10);
-
   // get BPM
   if(*p == 'b') {
     p++; p++;              // skip "b="
     num = 0;
-    while(isdigit(*p))
-    {
+    while(isdigit(*p)) {
       num = (num * 10) + (*p++ - '0');
     }
     bpm = num;
     p++;                   // skip colon
   }
 
-  Serial.print("bpm: "); Serial.println(bpm, 10);
-
   // BPM usually expresses the number of quarter notes per minute
-  wholenote = (60 * 1000L / bpm) * 4;  // this is the time for whole note (in milliseconds)
-
-  Serial.print("wn: "); Serial.println(wholenote, 10);
+  // this is the time for whole note (in milliseconds)
+  wholenote = (60 * 1000L / bpm) * 4;
 
   // now begin note loop
   while(*p) {
@@ -248,8 +242,9 @@ void play_rtttl(char *p) {
       num = (num * 10) + (*p++ - '0');
     }
 
+    // we will need to check if we are a dotted note after
     if(num) duration = wholenote / num;
-    else duration = wholenote / default_dur;  // we will need to check if we are a dotted note after
+    else duration = wholenote / default_dur;
 
     // now get the note
     note = 0;
@@ -307,24 +302,37 @@ void play_rtttl(char *p) {
     scale += OCTAVE_OFFSET;
 
     if(*p == ',')
-      p++;       // skip comma for next note (or we may be at the end)
+      // skip comma for next note (or we may be at the end)
+      p++;
 
     // now play the note
     if(note) {
-      Serial.print("Playing: ");
-      Serial.print(scale, 10); Serial.print(' ');
-      Serial.print(note, 10); Serial.print(" (");
-      Serial.print(notes[(scale - 4) * 12 + note], 10);
-      Serial.print(") ");
-      Serial.println(duration, 10);
       tone1.play(notes[(scale - 4) * 12 + note]);
       delay(duration);
       tone1.stop();
     }
     else {
-      Serial.print("Pausing: ");
-      Serial.println(duration, 10);
       delay(duration);
     }
   }
+}
+
+// Display the score at OLED screen.
+void screen_display_result() {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(display.width()/3, 0);
+  display.println("MARCADOR:");
+  display.drawRect(5, 10, display.width()-5, display.height()-10, WHITE);
+
+  // Display score.
+  display.setTextSize(2);
+  display.setCursor((display.width()/4), 13);
+  display.print(player1_counter);
+  display.setCursor((display.width()/2), 13);
+  display.print("-");
+  display.setCursor((display.width()/4) * 3, 13);
+  display.print(player2_counter);
+  display.display();
 }
