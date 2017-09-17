@@ -156,8 +156,6 @@ void loop() {
 // and plays the end game over song.
 void evaluate_winner() {
   int *loser_pins;
-  // Display current result in screen.
-  screen_display_result();
 
   if (player1_counter == LEDS_SIZE) {
     loser_pins = player2_leds;
@@ -168,6 +166,9 @@ void evaluate_winner() {
     loser_pins = player1_leds;
     winner_player = 2;
   }
+
+  // Display current result in screen.
+  screen_display_result();
 
   // Play end game sound if there is a winner.
   if (winner_player != 0) {
