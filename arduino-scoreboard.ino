@@ -42,13 +42,13 @@ char *songs[] = {
 int button1_status = 0;
 int button1_last_status = 0;
 int player1_counter = 0;
-int player1_leds[LEDS_SIZE] = {8, 9, 10, 11, 12};
+int player1_leds[LEDS_SIZE] = {3, 4, 5, 6, 7};
 
 // Variables to control state of button2 state and player2 score.
 int button2_status = 0;
 int button2_last_status = 0;
 int player2_counter = 0;
-int player2_leds[LEDS_SIZE] = {3, 4, 5, 6, 7};
+int player2_leds[LEDS_SIZE] = {8, 9, 10, 11, 12};
 
 // Winer player record, when game is finished should be 1 or 2.
 int winner_player = 0;
