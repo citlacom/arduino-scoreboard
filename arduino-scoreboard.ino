@@ -1,27 +1,20 @@
 // Use the https://github.com/bhagman/Tone library to play songs
 // using a passive buzzer.
 #include <Tone.h>
-// Use the https://github.com/adafruit/Adafruit_SSD1306
-// and https://github.com/adafruit/Adafruit-GFX-Library
-// libraries to display results to OLED screen.
-#include <Adafruit_SSD1306.h>
 
 // BUZZER
-#define BUZZER_PIN 13
+#define BUZZER_PIN 12
 // Red button
-#define BUTTON_PLAYER1 1
+#define BUTTON_PLAYER1 20
 // Yellow button
-#define BUTTON_PLAYER2 2
+#define BUTTON_PLAYER2 21
 // Player leds size.
 #define LEDS_SIZE 5
 // Variables for song play.
 #define OCTAVE_OFFSET 0
-// Screen OLED variables.
-#define OLED_RESET A0
-#define NUMFLAKES 10
-#define XPOS 0
-#define YPOS 1
-#define DELTAY 2
+
+// Define screen type
+#define SCREEN_TYPE 2
 
 // Notes array required by Tone library.
 int notes[] = { 0,
@@ -42,13 +35,13 @@ char *songs[] = {
 int button1_status = 0;
 int button1_last_status = 0;
 int player1_counter = 0;
-int player1_leds[LEDS_SIZE] = {3, 4, 5, 6, 7};
+int player1_leds[LEDS_SIZE] = {2, 3, 4, 5, 6};
 
 // Variables to control state of button2 state and player2 score.
 int button2_status = 0;
 int button2_last_status = 0;
 int player2_counter = 0;
-int player2_leds[LEDS_SIZE] = {8, 9, 10, 11, 12};
+int player2_leds[LEDS_SIZE] = {7, 8, 9, 10, 11};
 
 // Winer player record, when game is finished should be 1 or 2.
 int winner_player = 0;
@@ -64,8 +57,6 @@ int reading2;
 
 // Initialize Tone object.
 Tone tone1;
-// Initialize Adafruit_SSD1306 object.
-Adafruit_SSD1306 display(OLED_RESET);
 
 void setup() {
   pinMode(BUTTON_PLAYER1, INPUT);
@@ -79,11 +70,7 @@ void setup() {
     pinMode(player2_leds[i], OUTPUT);
   }
 
-  // Initialize screen with the I2C addr 0x3C (for the 128x64)
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-
-  // Initialize screen.
-  screen_display_result();
+  init_screen();
 }
 
 void loop() {
@@ -316,33 +303,4 @@ void play_rtttl(char *p) {
       delay(duration);
     }
   }
-}
-
-// Display the score at OLED screen.
-void screen_display_result() {
-  char *label;
-
-  if (winner_player == 0) {
-    label = "MARCADOR";
-  }
-  else {
-    label = "FINALIZADO";
-  }
-
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(display.width()/3, 0);
-  display.println(label);
-  display.drawRect(5, 10, display.width()-5, display.height()-10, WHITE);
-
-  // Display score.
-  display.setTextSize(2);
-  display.setCursor((display.width()/4), 13);
-  display.print(player1_counter);
-  display.setCursor((display.width()/2), 13);
-  display.print("-");
-  display.setCursor((display.width()/4) * 3, 13);
-  display.print(player2_counter);
-  display.display();
 }
