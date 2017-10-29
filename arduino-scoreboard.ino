@@ -1,13 +1,14 @@
 // Use the https://github.com/bhagman/Tone library to play songs
 // using a passive buzzer.
 #include <Tone.h>
+#include <CountUpDownTimer.h>
 
 // BUZZER
 #define BUZZER_PIN 12
 // Red button
-#define BUTTON_PLAYER1 20
+#define BUTTON_PLAYER1 A4
 // Yellow button
-#define BUTTON_PLAYER2 21
+#define BUTTON_PLAYER2 A5
 // Player leds size.
 #define LEDS_SIZE 5
 // Variables for song play.
@@ -15,6 +16,10 @@
 
 // Define screen type
 #define SCREEN_TYPE 2
+
+// Timer type.
+CountUpDownTimer T(UP, HIGH);
+
 
 // Notes array required by Tone library.
 int notes[] = { 0,
@@ -70,10 +75,18 @@ void setup() {
     pinMode(player2_leds[i], OUTPUT);
   }
 
+  T.StartTimer();
   init_screen();
 }
 
 void loop() {
+  T.Timer();
+
+  // Update timer display.
+  if (T.TimeHasChanged()) {
+    screen_print_timer(T.ShowTotalSeconds());
+  }
+    
   int reading1 = digitalRead(BUTTON_PLAYER1);
   int reading2 = digitalRead(BUTTON_PLAYER2);
 

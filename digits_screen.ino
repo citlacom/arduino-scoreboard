@@ -5,31 +5,28 @@
 #if SCREEN_TYPE == 2
 
   #include <LedControl.h>
-  #include <CountUpDownTimer.h>
   
   // Digit screen.
-  #define DATA_PIN 14
-  #define CS_PIN 15
-  #define CLOCK_PIN 16
+  #define DATA_PIN A2
+  #define CS_PIN A1
+  #define CLOCK_PIN A0
   
   LedControl lc = LedControl(DATA_PIN, CLOCK_PIN, CS_PIN, 1);
-  CountUpDownTimer T(UP, HIGH);
   
   void init_screen() {
     lc.shutdown(0, false);
     lc.setIntensity(0,8);
-    T.StartTimer();
+    screen_display_result();
   }
   
   void screen_display_result() {
-    T.Timer();
-    lc.setChar(0, 5, 0, false);
-    lc.setChar(0, 6, '-', false);
-    lc.setChar(0, 7, 0, false);
-  
-    if (T.TimeHasChanged()) {
-      screen_print_timer(T.ShowSeconds());
+    if (winner_player != 0) {
+      T.StopTimer();
     }
+    
+    lc.setChar(0, 7, player1_counter, false);
+    lc.setChar(0, 6, '-', false);
+    lc.setChar(0, 5, player2_counter, false);
   }
   
   void screen_print_timer(int v) {
